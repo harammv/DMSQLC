@@ -143,4 +143,4 @@ def delete_comment(post_id, comment_id):
     return redirect("/silver_admin_hidden_2464")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+  app.run(host='0.0.0.0', port=5000)
