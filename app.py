@@ -159,5 +159,6 @@ def delete_comment(post_id, comment_id):
     return redirect("/silver_admin_hidden_2464")
 
 if __name__ == "__main__":
-    # debug=False로 설정하여 메모리 사용 최소화
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    # Render 환경에서는 환경변수 PORT를 사용해야 해
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
