@@ -1,0 +1,162 @@
+/* 1. 기본 설정 및 배경 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: linear-gradient(180deg, #FDFBF7 0%, #E6E9EF 100%);
+    color: #3C4146;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+/* 2. 타이틀 및 헤더 */
+header, h1.title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+h1 {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: #5C6B73;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #94A3B8;
+    font-size: 15px;
+    margin-bottom: 40px;
+}
+
+/* 3. 공통 카드 스타일 */
+.box, .post {
+    background: white;
+    padding: 24px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.01);
+}
+
+/* 4. 입력창 및 버튼 */
+input, textarea {
+    width: 100%;
+    border: 1px solid #F1F3F5;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    background: #F8F9FA;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    background: #FFFFFF;
+    border-color: #A3B1C6;
+    box-shadow: 0 0 0 4px rgba(163, 177, 198, 0.1);
+}
+
+button, .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #A3B1C6;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover { background: #8C9BB0; }
+
+/* 5. 게시글 내부 스타일 */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.nickname {
+    font-weight: 700;
+    font-size: 16.5px;
+    color: #5C6B73;
+}
+
+/* ⭐ 시간 표시 스타일 추가 */
+.post-time {
+    font-size: 12px;
+    color: #A0AEC0;
+    font-weight: 400;
+    margin-left: 8px;
+}
+
+.content, .post-content {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #444;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+}
+
+/* 6. 댓글 영역 */
+.comment-section, .comments {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #F1F3F5;
+}
+
+.comment-item, .comment {
+    font-size: 14.5px;
+    margin-bottom: 10px;
+    color: #555;
+    background: #F8F9FA;
+    padding: 12px 16px;
+    border-radius: 12px;
+}
+
+/* 7. 신고 및 삭제 스타일 */
+.report {
+    color: #EF4444;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 8px 0;
+}
+
+.report-form {
+    display: flex; gap: 5px; opacity: 0.6; transition: 0.3s;
+}
+
+.report-form:hover { opacity: 1; }
+
+.report-form input {
+    font-size: 12px; padding: 6px 10px; margin-bottom: 0;
+}
+
+.report-form button, .delete-btn {
+    background: #FEE2E2;
+    color: #EF4444;
+    font-size: 12px;
+    padding: 6px 12px;
+    width: auto;
+}
+
+.delete-btn:hover { background: #FECACA; }
+
+/* 상단 바 (관리자용) */
+.top-bar { text-align: right; margin-bottom: 20px; }
+.logout {
+    text-decoration: none; color: #888; font-size: 13px;
+}
