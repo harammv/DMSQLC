@@ -6,26 +6,35 @@ import os, json
 import gc
 
 app = Flask(__name__)
-app.secret_key = "silver_admin_secret_key_2026" # 보안을 위해 길게 설정
+app.secret_key = "silver_admin_secret_key_2026"
 app.permanent_session_lifetime = timedelta(days=1)
 
-# 1. Firebase 초기화 (안정성 강화)
+# 1. Firebase 초기화 (Vercel 환경 변수 우선 지원)
 if not firebase_admin._apps:
     try:
-        # 파일 경로가 정확한지 확인해! (firebase_key.json)
-        cred = credentials.Certificate("firebase_key.json")
+        # Vercel Settings에 등록할 'FIREBASE_JSON' 환경 변수를 확인
+        firebase_info = os.environ.get("FIREBASE_JSON")
+        
+        if firebase_info:
+            # 환경 변수가 있으면 그 내용을 딕셔너리로 변환해서 사용
+            cred_dict = json.loads(firebase_info)
+            cred = credentials.Certificate(cred_dict)
+        else:
+            # 환경 변수가 없으면 기존처럼 파일에서 읽음 (내 컴퓨터 작업용)
+            cred = credentials.Certificate("firebase_key.json")
+        
         firebase_admin.initialize_app(cred)
     except Exception as e:
         print(f"❌ 파이어베이스 초기화 실패: {e}")
 
 db = firestore.client()
-ADMIN_PASSWORD = "4357" # 하람이가 정한 관리자 비번
+ADMIN_PASSWORD = "4357"
 
-# 2. 메인 페이지 (성능 최적화)
+# 2. 메인 페이지
 @app.route("/")
 def index():
     try:
-        # 유료 플랜이므로 개수를 30개로 늘려서 더 많이 보여줌
+        # 최신글 30개 불러오기
         posts_ref = db.collection("posts").order_by("created", direction=firestore.Query.DESCENDING).limit(30)
         posts = []
         docs = posts_ref.get()
@@ -54,21 +63,18 @@ def index():
             posts.append(post)
         
         response = render_template("index.html", posts=posts)
-        
-        # 메모리 관리 (습관적으로 넣어주는게 좋아)
         del posts
         gc.collect() 
         return response
     except Exception as e:
         gc.collect()
-        return f"서버 연결 오류: {e}. 잠시 후 다시 시도해주세요."
+        return f"서버 연결 오류: {e}. 파이어베이스 설정을 확인해주세요."
 
 # 3. 글쓰기 및 댓글 작성
 @app.route("/submit", methods=["POST"])
 def submit():
     content = request.form.get("content", "").strip()
     nickname = request.form.get("nickname", "익명").strip()
-    
     if content:
         db.collection("posts").add({
             "nickname": nickname,
@@ -83,7 +89,6 @@ def submit():
 def comment(post_id):
     content = request.form.get("content", "").strip()
     nickname = request.form.get("nickname", "익명").strip()
-    
     if content:
         db.collection("posts").document(post_id).collection("comments").add({
             "nickname": nickname,
@@ -114,7 +119,6 @@ def admin():
     if not session.get("admin"):
         return render_template("admin_login.html")
     
-    # 관리자 페이지는 모든 글 확인 (최신 50개)
     docs = db.collection("posts").order_by("created", direction=firestore.Query.DESCENDING).limit(50).get()
     posts = []
     for doc in docs:
@@ -129,7 +133,6 @@ def admin():
 @app.route("/admin/delete/post/<post_id>", methods=["POST"])
 def delete_post(post_id):
     if not session.get("admin"): return redirect("/")
-    # 메인 포스트 삭제 (댓글은 파이어베이스 콘솔에서 삭제 권장)
     db.collection("posts").document(post_id).delete()
     return redirect(url_for("admin"))
 
@@ -139,6 +142,5 @@ def logout():
     return redirect("/")
 
 if __name__ == "__main__":
-    # Render 환경변수 포트 적용
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
