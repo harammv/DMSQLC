@@ -9,21 +9,26 @@ app = Flask(__name__)
 app.secret_key = "silver_admin_secret_key_2026"
 app.permanent_session_lifetime = timedelta(days=1)
 
-# 1. Firebase 초기화 (Vercel 환경 변수 우선 지원)
+# 1. Firebase 초기화 (Vercel 환경 변수 자동 인식 및 오류 방지 로직)
 if not firebase_admin._apps:
     try:
-        # Vercel Settings에 등록할 'FIREBASE_JSON' 환경 변수를 확인
         firebase_info = os.environ.get("FIREBASE_JSON")
         
         if firebase_info:
-            # 환경 변수가 있으면 그 내용을 딕셔너리로 변환해서 사용
-            cred_dict = json.loads(firebase_info)
+            # 환경 변수가 문자열인 경우 JSON으로 변환 (엄격하지 않은 모드 적용)
+            cred_dict = json.loads(firebase_info, strict=False)
+            
+            # 💡 가장 중요한 부분: private_key 내의 실제 줄바꿈 문자를 복원함
+            if "private_key" in cred_dict:
+                cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
+            
             cred = credentials.Certificate(cred_dict)
         else:
-            # 환경 변수가 없으면 기존처럼 파일에서 읽음 (내 컴퓨터 작업용)
+            # 로컬 작업 시 파일에서 읽어옴
             cred = credentials.Certificate("firebase_key.json")
-        
+            
         firebase_admin.initialize_app(cred)
+        print("✅ 파이어베이스 연결 성공!")
     except Exception as e:
         print(f"❌ 파이어베이스 초기화 실패: {e}")
 
@@ -34,7 +39,6 @@ ADMIN_PASSWORD = "4357"
 @app.route("/")
 def index():
     try:
-        # 최신글 30개 불러오기
         posts_ref = db.collection("posts").order_by("created", direction=firestore.Query.DESCENDING).limit(30)
         posts = []
         docs = posts_ref.get()
@@ -43,7 +47,6 @@ def index():
             post = doc.to_dict()
             post["id"] = doc.id
             
-            # 한국 시간 변환 (+9시간)
             if "created" in post and post["created"]:
                 try:
                     kst_time = post["created"] + timedelta(hours=9)
@@ -53,7 +56,6 @@ def index():
             else:
                 post["time_display"] = "방금 전"
 
-            # 댓글 불러오기 (최신 20개)
             post["comments"] = []
             comments_docs = db.collection("posts").document(doc.id).collection("comments").order_by("created").limit(20).get()
             for c in comments_docs:
@@ -68,7 +70,7 @@ def index():
         return response
     except Exception as e:
         gc.collect()
-        return f"서버 연결 오류: {e}. 파이어베이스 설정을 확인해주세요."
+        return f"서버 연결 오류: {e}. 파이어베이스 설정을 다시 확인해주세요."
 
 # 3. 글쓰기 및 댓글 작성
 @app.route("/submit", methods=["POST"])
@@ -141,6 +143,7 @@ def logout():
     session.pop("admin", None)
     return redirect("/")
 
+# Vercel 배포를 위한 설정
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
